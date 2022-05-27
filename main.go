@@ -28,7 +28,12 @@ func createTodo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
+	w.WriteHeader(201)
 	json.NewEncoder(w).Encode(todo)
+}
+
+func deleteTodo(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(204)
 }
 
 func main() {
@@ -51,6 +56,7 @@ func main() {
 
 	r.Get("/", ok)
 	r.Post("/", createTodo)
+	r.Delete("/", deleteTodo)
 
 	http.ListenAndServe(":8080", r)
 }
