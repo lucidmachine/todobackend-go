@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -9,8 +10,26 @@ import (
 	"github.com/go-chi/cors"
 )
 
+type Todo struct {
+	Id        string `json:"id"`
+	Title     string `json:"title"`
+	Completed bool   `json:"completed"`
+	Order     int    `json:"order"`
+	Url       string `json:"url"`
+}
+
 func helloWorld(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello URL: %s", r.URL)
+}
+
+func createTodo(w http.ResponseWriter, r *http.Request) {
+	var todo Todo
+	err := json.NewDecoder(r.Body).Decode(&todo)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	json.NewEncoder(w).Encode(todo)
 }
 
 func main() {
@@ -32,6 +51,7 @@ func main() {
 	}))
 
 	r.Get("/", helloWorld)
+	r.Post("/", createTodo)
 
 	http.ListenAndServe(":8080", r)
 }
