@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -18,8 +17,8 @@ type Todo struct {
 	Url       string `json:"url"`
 }
 
-func helloWorld(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello URL: %s", r.URL)
+func ok(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(200)
 }
 
 func createTodo(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +49,7 @@ func main() {
 		MaxAge:           300,
 	}))
 
-	r.Get("/", helloWorld)
+	r.Get("/", ok)
 	r.Post("/", createTodo)
 
 	http.ListenAndServe(":8080", r)
