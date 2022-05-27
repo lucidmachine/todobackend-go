@@ -17,8 +17,9 @@ type Todo struct {
 	Url       string `json:"url"`
 }
 
-func ok(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(200)
+func getTodos(w http.ResponseWriter, r *http.Request) {
+	todos := []Todo{}
+	json.NewEncoder(w).Encode(todos)
 }
 
 func createTodo(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +55,7 @@ func main() {
 		MaxAge:           300,
 	}))
 
-	r.Get("/", ok)
+	r.Get("/", getTodos)
 	r.Post("/", createTodo)
 	r.Delete("/", deleteTodo)
 
