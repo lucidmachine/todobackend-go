@@ -17,7 +17,10 @@ func main() {
 	}
 	defer db.Close()
 
-	repo := NewRepository(db)
+	repo, err := NewRepository(db)
+	if err != nil {
+		log.Panicf("Failed to create repository: %v", err)
+	}
 	err = repo.DropTable()
 	if err != nil {
 		log.Panicf("Failed to drop table `todos`: %v", err)

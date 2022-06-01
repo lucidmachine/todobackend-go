@@ -6,10 +6,10 @@ import (
 )
 
 type Controller struct {
-	repo Repository
+	repo *Repository
 }
 
-func NewController(repo Repository) Controller {
+func NewController(repo *Repository) Controller {
 	return Controller{repo: repo}
 }
 

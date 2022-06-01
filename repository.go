@@ -34,25 +34,52 @@ const (
 )
 
 type Repository struct {
-	db *sql.DB
+	db                                                              *sql.DB
+	dropTableStmt, createTableStmt, insertTodoStmt, selectTodosStmt *sql.Stmt
 }
 
-func NewRepository(db *sql.DB) Repository {
-	return Repository{db: db}
+func NewRepository(db *sql.DB) (*Repository, error) {
+	dropTableStmt, err := db.Prepare(dropTableSql)
+	if err != nil {
+		return nil, err
+	}
+
+	createTableStmt, err := db.Prepare(createTableSql)
+	if err != nil {
+		return nil, err
+	}
+
+	insertTodoStmt, err := db.Prepare(insertTodoSql)
+	if err != nil {
+		return nil, err
+	}
+
+	selectTodosStmt, err := db.Prepare(selectTodosSql)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Repository{
+		db:              db,
+		dropTableStmt:   dropTableStmt,
+		createTableStmt: createTableStmt,
+		insertTodoStmt:  insertTodoStmt,
+		selectTodosStmt: selectTodosStmt,
+	}, nil
 }
 
 func (repo Repository) DropTable() error {
-	_, err := repo.db.Exec(dropTableSql)
+	_, err := repo.dropTableStmt.Exec()
 	return err
 }
 
 func (repo Repository) CreateTable() error {
-	_, err := repo.db.Exec(createTableSql)
+	_, err := repo.createTableStmt.Exec()
 	return err
 }
 
 func (repo Repository) CreateTodo(todo Todo) (int, error) {
-	res, err := repo.db.Exec(insertTodoSql, nil, todo.Title, todo.Completed, todo.Order, todo.Url)
+	res, err := repo.insertTodoStmt.Exec(nil, todo.Title, todo.Completed, todo.Order, todo.Url)
 	if err != nil {
 		return 0, err
 	}
@@ -65,7 +92,7 @@ func (repo Repository) CreateTodo(todo Todo) (int, error) {
 }
 
 func (repo Repository) GetTodos() ([]Todo, error) {
-	rows, err := repo.db.Query(selectTodosSql)
+	rows, err := repo.selectTodosStmt.Query()
 	if err != nil {
 		return nil, err
 	}
