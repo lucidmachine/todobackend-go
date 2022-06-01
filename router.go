@@ -23,8 +23,8 @@ func registerMiddleware(r chi.Router) {
 	}))
 }
 
-func registerRoutes(r chi.Router) {
-	r.Get("/", getTodos)
-	r.Post("/", createTodo)
-	r.Delete("/", deleteTodo)
+func registerRoutes(r chi.Router, c Controller) {
+	r.Get("/", c.getTodos)
+	r.Post("/", c.createTodo)
+	r.Delete("/", c.deleteTodo)
 }

@@ -5,12 +5,20 @@ import (
 	"net/http"
 )
 
-func getTodos(w http.ResponseWriter, r *http.Request) {
+type Controller struct {
+	repo Repository
+}
+
+func NewController(repo Repository) Controller {
+	return Controller{repo: repo}
+}
+
+func (c Controller) getTodos(w http.ResponseWriter, r *http.Request) {
 	todos := []Todo{}
 	json.NewEncoder(w).Encode(todos)
 }
 
-func createTodo(w http.ResponseWriter, r *http.Request) {
+func (c Controller) createTodo(w http.ResponseWriter, r *http.Request) {
 	var todo Todo
 	err := json.NewDecoder(r.Body).Decode(&todo)
 	if err != nil {
@@ -21,6 +29,6 @@ func createTodo(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(todo)
 }
 
-func deleteTodo(w http.ResponseWriter, r *http.Request) {
+func (c Controller) deleteTodo(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(204)
 }
