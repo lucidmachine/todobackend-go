@@ -9,14 +9,6 @@ import (
 	"github.com/go-chi/cors"
 )
 
-type Todo struct {
-	Id        string `json:"id"`
-	Title     string `json:"title"`
-	Completed bool   `json:"completed"`
-	Order     int    `json:"order"`
-	Url       string `json:"url"`
-}
-
 func getTodos(w http.ResponseWriter, r *http.Request) {
 	todos := []Todo{}
 	json.NewEncoder(w).Encode(todos)
