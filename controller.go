@@ -14,7 +14,13 @@ func NewController(repo Repository) Controller {
 }
 
 func (c Controller) getTodos(w http.ResponseWriter, r *http.Request) {
-	todos := []Todo{}
+	// Retrieve
+	todos, err := c.repo.GetTodos()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusServiceUnavailable)
+	}
+
+	// Respond
 	json.NewEncoder(w).Encode(todos)
 }
 

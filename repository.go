@@ -16,15 +16,20 @@ const (
 		id 				INTEGER	NOT NULL 	PRIMARY KEY,
 		title 		TEXT 		NOT NULL,
 		completed INTEGER NOT NULL,
-		'order'		INTEGER NOT NULL,
+		"order"		INTEGER NOT NULL,
 		url 			TEXT 		NOT NULL
 	);`
 
 	insertTodoSql = `
 	INSERT INTO todos
-	(id, title, completed, 'order', url)
+	(id, title, completed, "order", url)
 	VALUES
 	(?, ?, ?, ?, ?);
+	`
+
+	selectTodosSql = `
+	SELECT id, title, completed, "order", url
+	FROM todos;
 	`
 )
 
@@ -57,4 +62,23 @@ func (repo Repository) CreateTodo(todo Todo) (int, error) {
 		return 0, err
 	}
 	return int(id), nil
+}
+
+func (repo Repository) GetTodos() ([]Todo, error) {
+	rows, err := repo.db.Query(selectTodosSql)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	todos := []Todo{}
+	for rows.Next() {
+		todo := Todo{}
+		err = rows.Scan(&todo.Id, &todo.Title, &todo.Completed, &todo.Order, &todo.Url)
+		if err != nil {
+			return nil, err
+		}
+		todos = append(todos, todo)
+	}
+	return todos, nil
 }
