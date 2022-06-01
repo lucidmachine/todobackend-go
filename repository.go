@@ -31,11 +31,19 @@ const (
 	SELECT id, title, completed, "order", url
 	FROM todos;
 	`
+
+	deleteTodosSql = `
+	DELETE FROM todos;
+	`
 )
 
 type Repository struct {
-	db                                                              *sql.DB
-	dropTableStmt, createTableStmt, insertTodoStmt, selectTodosStmt *sql.Stmt
+	db              *sql.DB
+	dropTableStmt   *sql.Stmt
+	createTableStmt *sql.Stmt
+	insertTodoStmt  *sql.Stmt
+	selectTodosStmt *sql.Stmt
+	deleteTodoStmt  *sql.Stmt
 }
 
 func NewRepository(db *sql.DB) (*Repository, error) {
@@ -59,12 +67,18 @@ func NewRepository(db *sql.DB) (*Repository, error) {
 		return nil, err
 	}
 
+	deleteTodoStmt, err := db.Prepare(deleteTodosSql)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Repository{
 		db:              db,
 		dropTableStmt:   dropTableStmt,
 		createTableStmt: createTableStmt,
 		insertTodoStmt:  insertTodoStmt,
 		selectTodosStmt: selectTodosStmt,
+		deleteTodoStmt:  deleteTodoStmt,
 	}, nil
 }
 
@@ -108,4 +122,17 @@ func (repo Repository) GetTodos() ([]Todo, error) {
 		todos = append(todos, todo)
 	}
 	return todos, nil
+}
+
+func (repo Repository) DeleteTodos() (int, error) {
+	res, err := repo.deleteTodoStmt.Exec()
+	if err != nil {
+		return 0, err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }
