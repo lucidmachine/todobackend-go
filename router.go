@@ -24,7 +24,9 @@ func registerMiddleware(r chi.Router) {
 }
 
 func registerRoutes(r chi.Router, c Controller) {
-	r.Get("/", c.getTodos)
-	r.Post("/", c.createTodo)
-	r.Delete("/", c.deleteTodos)
+	r.Get("/", c.GetTodos)
+	r.Post("/", c.CreateTodo)
+	r.Delete("/", c.DeleteTodos)
+
+	r.Get("/{id}", c.GetTodoById)
 }

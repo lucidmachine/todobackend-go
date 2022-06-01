@@ -8,7 +8,12 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-const dbFilename string = "todo.db"
+const (
+	dbFilename string = "todo.db"
+	protocol   string = "http"
+	hostname   string = "localhost"
+	addr       string = ":8080"
+)
 
 func main() {
 	db, err := sql.Open("sqlite3", dbFilename)
@@ -30,11 +35,12 @@ func main() {
 		log.Panicf("Failed to create table `todos`: %v", err)
 	}
 
-	controller := NewController(repo)
+	baseUrl := protocol + "://" + hostname + addr + "/"
+	controller := NewController(repo, baseUrl)
 
 	router := chi.NewRouter()
 	registerMiddleware(router)
 	registerRoutes(router, controller)
 
-	http.ListenAndServe(":8080", router)
+	http.ListenAndServe(addr, router)
 }

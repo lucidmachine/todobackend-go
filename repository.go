@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 
+	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -13,7 +14,7 @@ const (
 
 	createTableSql = `
 	CREATE TABLE IF NOT EXISTS todos (
-		id 				INTEGER	NOT NULL 	PRIMARY KEY,
+		id 				TEXT		NOT NULL 	PRIMARY KEY,
 		title 		TEXT 		NOT NULL,
 		completed INTEGER NOT NULL,
 		"order"		INTEGER NOT NULL,
@@ -32,18 +33,25 @@ const (
 	FROM todos;
 	`
 
+	selectTodoByIdSql = `
+	SELECT id, title, completed, "order", url
+	FROM todos
+	WHERE id = ?;
+	`
+
 	deleteTodosSql = `
 	DELETE FROM todos;
 	`
 )
 
 type Repository struct {
-	db              *sql.DB
-	dropTableStmt   *sql.Stmt
-	createTableStmt *sql.Stmt
-	insertTodoStmt  *sql.Stmt
-	selectTodosStmt *sql.Stmt
-	deleteTodoStmt  *sql.Stmt
+	db                 *sql.DB
+	dropTableStmt      *sql.Stmt
+	createTableStmt    *sql.Stmt
+	insertTodoStmt     *sql.Stmt
+	selectTodosStmt    *sql.Stmt
+	selectTodoByIdStmt *sql.Stmt
+	deleteTodoStmt     *sql.Stmt
 }
 
 func NewRepository(db *sql.DB) (*Repository, error) {
@@ -67,18 +75,24 @@ func NewRepository(db *sql.DB) (*Repository, error) {
 		return nil, err
 	}
 
+	selectTodoByIdStmt, err := db.Prepare(selectTodoByIdSql)
+	if err != nil {
+		return nil, err
+	}
+
 	deleteTodoStmt, err := db.Prepare(deleteTodosSql)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Repository{
-		db:              db,
-		dropTableStmt:   dropTableStmt,
-		createTableStmt: createTableStmt,
-		insertTodoStmt:  insertTodoStmt,
-		selectTodosStmt: selectTodosStmt,
-		deleteTodoStmt:  deleteTodoStmt,
+		db:                 db,
+		dropTableStmt:      dropTableStmt,
+		createTableStmt:    createTableStmt,
+		insertTodoStmt:     insertTodoStmt,
+		selectTodosStmt:    selectTodosStmt,
+		selectTodoByIdStmt: selectTodoByIdStmt,
+		deleteTodoStmt:     deleteTodoStmt,
 	}, nil
 }
 
@@ -92,17 +106,9 @@ func (repo Repository) CreateTable() error {
 	return err
 }
 
-func (repo Repository) CreateTodo(todo Todo) (int, error) {
-	res, err := repo.insertTodoStmt.Exec(nil, todo.Title, todo.Completed, todo.Order, todo.Url)
-	if err != nil {
-		return 0, err
-	}
-
-	id, err := res.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-	return int(id), nil
+func (repo Repository) CreateTodo(todo Todo) error {
+	_, err := repo.insertTodoStmt.Exec(todo.Id, todo.Title, todo.Completed, todo.Order, todo.Url)
+	return err
 }
 
 func (repo Repository) GetTodos() ([]Todo, error) {
@@ -122,6 +128,14 @@ func (repo Repository) GetTodos() ([]Todo, error) {
 		todos = append(todos, todo)
 	}
 	return todos, nil
+}
+
+func (repo Repository) GetTodo(id uuid.UUID) (Todo, error) {
+	row := repo.selectTodoByIdStmt.QueryRow(id)
+
+	todo := Todo{}
+	err := row.Scan(&todo.Id, &todo.Title, &todo.Completed, &todo.Order, &todo.Url)
+	return todo, err
 }
 
 func (repo Repository) DeleteTodos() (int, error) {

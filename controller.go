@@ -3,17 +3,46 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 )
 
 type Controller struct {
-	repo *Repository
+	repo    *Repository
+	baseUrl string
 }
 
-func NewController(repo *Repository) Controller {
-	return Controller{repo: repo}
+func NewController(repo *Repository, baseUrl string) Controller {
+
+	return Controller{repo: repo, baseUrl: baseUrl}
 }
 
-func (c Controller) getTodos(w http.ResponseWriter, r *http.Request) {
+func (c Controller) CreateTodo(w http.ResponseWriter, r *http.Request) {
+	// Deserialize
+	var todo Todo
+	err := json.NewDecoder(r.Body).Decode(&todo)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	// Assign ID
+	id := uuid.New()
+	todo.Id = id
+	todo.Url = c.baseUrl + id.String()
+
+	// Persist
+	err = c.repo.CreateTodo(todo)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	// Respond
+	w.WriteHeader(201)
+	json.NewEncoder(w).Encode(todo)
+}
+
+func (c Controller) GetTodos(w http.ResponseWriter, r *http.Request) {
 	// Retrieve
 	todos, err := c.repo.GetTodos()
 	if err != nil {
@@ -24,27 +53,25 @@ func (c Controller) getTodos(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(todos)
 }
 
-func (c Controller) createTodo(w http.ResponseWriter, r *http.Request) {
-	// Deserialize
-	var todo Todo
-	err := json.NewDecoder(r.Body).Decode(&todo)
+func (c Controller) GetTodoById(w http.ResponseWriter, r *http.Request) {
+	// Read
+	idStr := chi.URLParam(r, "id")
+	id, err := uuid.Parse(idStr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	// Persist
-	id, err := c.repo.CreateTodo(todo)
+	// Retrieve
+	todo, err := c.repo.GetTodo(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	todo.Id = id
 
 	// Respond
-	w.WriteHeader(201)
 	json.NewEncoder(w).Encode(todo)
 }
 
-func (c Controller) deleteTodos(w http.ResponseWriter, r *http.Request) {
+func (c Controller) DeleteTodos(w http.ResponseWriter, r *http.Request) {
 	// Delete
 	_, err := c.repo.DeleteTodos()
 	if err != nil {
