@@ -15,8 +15,18 @@ func main() {
 	if err != nil {
 		log.Panicf("Failed to open database file %s: %v", dbFilename, err)
 	}
+	defer db.Close()
 
 	repo := NewRepository(db)
+	err = repo.DropTable()
+	if err != nil {
+		log.Panicf("Failed to drop table `todos`: %v", err)
+	}
+	err = repo.CreateTable()
+	if err != nil {
+		log.Panicf("Failed to create table `todos`: %v", err)
+	}
+
 	controller := NewController(repo)
 
 	router := chi.NewRouter()

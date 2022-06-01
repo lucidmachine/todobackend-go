@@ -19,12 +19,21 @@ func (c Controller) getTodos(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Controller) createTodo(w http.ResponseWriter, r *http.Request) {
+	// Deserialize
 	var todo Todo
 	err := json.NewDecoder(r.Body).Decode(&todo)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
+	// Persist
+	id, err := c.repo.CreateTodo(todo)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusServiceUnavailable)
+	}
+	todo.Id = id
+
+	// Respond
 	w.WriteHeader(201)
 	json.NewEncoder(w).Encode(todo)
 }
