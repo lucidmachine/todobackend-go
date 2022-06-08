@@ -28,5 +28,5 @@ func registerRoutes(r chi.Router, c Controller) {
 	r.Post("/", c.CreateTodo)
 	r.Delete("/", c.DeleteTodos)
 
-	r.Get("/{id}", c.GetTodoById)
+	r.Get("/{id}", c.GetTodo)
 }

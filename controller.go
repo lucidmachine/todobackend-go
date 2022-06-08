@@ -53,7 +53,7 @@ func (c Controller) GetTodos(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(todos)
 }
 
-func (c Controller) GetTodoById(w http.ResponseWriter, r *http.Request) {
+func (c Controller) GetTodo(w http.ResponseWriter, r *http.Request) {
 	// Read
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
