@@ -24,6 +24,7 @@ func (c Controller) CreateTodo(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&todo)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	// Assign ID
@@ -35,6 +36,7 @@ func (c Controller) CreateTodo(w http.ResponseWriter, r *http.Request) {
 	err = c.repo.CreateTodo(todo)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	// Respond
@@ -47,6 +49,7 @@ func (c Controller) GetTodos(w http.ResponseWriter, r *http.Request) {
 	todos, err := c.repo.GetTodos()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	// Respond
@@ -59,12 +62,14 @@ func (c Controller) GetTodo(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(idStr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	// Retrieve
 	todo, err := c.repo.GetTodo(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	// Respond
@@ -76,6 +81,7 @@ func (c Controller) DeleteTodos(w http.ResponseWriter, r *http.Request) {
 	_, err := c.repo.DeleteTodos()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	// Respond
