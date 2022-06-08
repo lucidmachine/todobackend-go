@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 
@@ -68,7 +69,11 @@ func (c Controller) GetTodo(w http.ResponseWriter, r *http.Request) {
 	// Retrieve
 	todo, err := c.repo.GetTodo(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		if err == sql.ErrNoRows {
+			w.WriteHeader(404)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
