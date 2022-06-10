@@ -16,5 +16,9 @@ install:
 test:
 	go test ./...
 
+check:
+	go vet ./...
+	staticcheck ./...
+
 run:
 	go run .
