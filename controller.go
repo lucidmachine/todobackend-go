@@ -36,7 +36,6 @@ type Controller struct {
 }
 
 func NewController(repo *Repository, baseUrl string) Controller {
-
 	return Controller{repo: repo, baseUrl: baseUrl}
 }
 
