@@ -29,4 +29,5 @@ func registerRoutes(r chi.Router, c Controller) {
 	r.Delete("/", c.DeleteTodos)
 
 	r.Get("/{id}", c.GetTodo)
+	r.Patch("/{id}", c.UpdateTodo)
 }

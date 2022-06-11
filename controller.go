@@ -9,6 +9,23 @@ import (
 	"github.com/google/uuid"
 )
 
+func Update(todo Todo, patch UpdateTodoRequest) Todo {
+
+	if patch.Title != nil {
+		todo.Title = *patch.Title
+	}
+
+	if patch.Completed != nil {
+		todo.Completed = *patch.Completed
+	}
+
+	if patch.Order != nil {
+		todo.Order = *patch.Order
+	}
+
+	return todo
+}
+
 type Controller struct {
 	repo    *Repository
 	baseUrl string
@@ -92,4 +109,44 @@ func (c Controller) DeleteTodos(w http.ResponseWriter, r *http.Request) {
 	// Respond
 	w.WriteHeader(204)
 	json.NewEncoder(w).Encode([]Todo{})
+}
+
+func (c Controller) UpdateTodo(w http.ResponseWriter, r *http.Request) {
+	// Deserialize
+	var patch UpdateTodoRequest
+	err := json.NewDecoder(r.Body).Decode(&patch)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Read
+	idStr := chi.URLParam(r, "id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Retrieve
+	existingTodo, err := c.repo.GetTodo(id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			w.WriteHeader(404)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Update
+	updatedTodo := Update(existingTodo, patch)
+	_, err = c.repo.UpdateTodo(updatedTodo)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Respond
+	json.NewEncoder(w).Encode(updatedTodo)
 }

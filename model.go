@@ -11,3 +11,9 @@ type Todo struct {
 	Order     int       `json:"order"`
 	Url       string    `json:"url"`
 }
+
+type UpdateTodoRequest struct {
+	Title     *string `json:"title,omitempty"`
+	Completed *bool   `json:"completed,omitempty"`
+	Order     *int    `json:"order,omitempty"`
+}
