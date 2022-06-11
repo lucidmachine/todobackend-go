@@ -9,8 +9,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func Update(todo Todo, patch UpdateTodoRequest) Todo {
+func getId(r *http.Request) (uuid.UUID, error) {
+	idStr := chi.URLParam(r, "id")
+	return uuid.Parse(idStr)
+}
 
+func Update(todo Todo, patch UpdateTodoRequest) Todo {
 	if patch.Title != nil {
 		todo.Title = *patch.Title
 	}
@@ -76,8 +80,7 @@ func (c Controller) GetTodos(w http.ResponseWriter, r *http.Request) {
 
 func (c Controller) GetTodo(w http.ResponseWriter, r *http.Request) {
 	// Read
-	idStr := chi.URLParam(r, "id")
-	id, err := uuid.Parse(idStr)
+	id, err := getId(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -108,8 +111,7 @@ func (c Controller) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Read
-	idStr := chi.URLParam(r, "id")
-	id, err := uuid.Parse(idStr)
+	id, err := getId(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -140,8 +142,7 @@ func (c Controller) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 
 func (c Controller) DeleteTodo(w http.ResponseWriter, r *http.Request) {
 	// Read
-	idStr := chi.URLParam(r, "id")
-	id, err := uuid.Parse(idStr)
+	id, err := getId(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
