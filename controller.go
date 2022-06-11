@@ -98,19 +98,6 @@ func (c Controller) GetTodo(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(todo)
 }
 
-func (c Controller) DeleteTodos(w http.ResponseWriter, r *http.Request) {
-	// Delete
-	_, err := c.repo.DeleteTodos()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Respond
-	w.WriteHeader(204)
-	json.NewEncoder(w).Encode([]Todo{})
-}
-
 func (c Controller) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 	// Deserialize
 	var patch UpdateTodoRequest
@@ -149,4 +136,37 @@ func (c Controller) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 
 	// Respond
 	json.NewEncoder(w).Encode(updatedTodo)
+}
+
+func (c Controller) DeleteTodo(w http.ResponseWriter, r *http.Request) {
+	// Read
+	idStr := chi.URLParam(r, "id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Delete
+	_, err = c.repo.DeleteTodo(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Respond
+	w.WriteHeader(204)
+}
+
+func (c Controller) DeleteTodos(w http.ResponseWriter, r *http.Request) {
+	// Delete
+	_, err := c.repo.DeleteTodos()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Respond
+	w.WriteHeader(204)
+	json.NewEncoder(w).Encode([]Todo{})
 }

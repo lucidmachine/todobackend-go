@@ -45,6 +45,11 @@ const (
 	WHERE id = ?;
 	`
 
+	deleteTodoByIdSql = `
+	DELETE FROM todos
+	WHERE id = ?;
+	`
+
 	deleteTodosSql = `
 	DELETE FROM todos;
 	`
@@ -58,7 +63,8 @@ type Repository struct {
 	selectTodosStmt    *sql.Stmt
 	selectTodoByIdStmt *sql.Stmt
 	updateTodoByIdStmt *sql.Stmt
-	deleteTodoStmt     *sql.Stmt
+	deleteTodoByIdStmt *sql.Stmt
+	deleteTodosStmt    *sql.Stmt
 }
 
 func NewRepository(db *sql.DB) (*Repository, error) {
@@ -92,7 +98,12 @@ func NewRepository(db *sql.DB) (*Repository, error) {
 		return nil, err
 	}
 
-	deleteTodoStmt, err := db.Prepare(deleteTodosSql)
+	deleteTodoByIdStmt, err := db.Prepare(deleteTodoByIdSql)
+	if err != nil {
+		return nil, err
+	}
+
+	deleteTodosStmt, err := db.Prepare(deleteTodosSql)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +116,8 @@ func NewRepository(db *sql.DB) (*Repository, error) {
 		selectTodosStmt:    selectTodosStmt,
 		selectTodoByIdStmt: selectTodoByIdStmt,
 		updateTodoByIdStmt: updateTodoByIdStmt,
-		deleteTodoStmt:     deleteTodoStmt,
+		deleteTodoByIdStmt: deleteTodoByIdStmt,
+		deleteTodosStmt:    deleteTodosStmt,
 	}, nil
 }
 
@@ -164,8 +176,21 @@ func (repo Repository) UpdateTodo(todo Todo) (int, error) {
 	return int(rowsAffected), nil
 }
 
+func (repo Repository) DeleteTodo(id uuid.UUID) (int, error) {
+	res, err := repo.deleteTodoByIdStmt.Exec(id)
+	if err != nil {
+		return 0, err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
+}
+
 func (repo Repository) DeleteTodos() (int, error) {
-	res, err := repo.deleteTodoStmt.Exec()
+	res, err := repo.deleteTodosStmt.Exec()
 	if err != nil {
 		return 0, err
 	}
